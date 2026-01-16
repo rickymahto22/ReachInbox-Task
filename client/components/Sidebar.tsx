@@ -121,8 +121,8 @@ export default function Sidebar() {
               {session?.user?.image ? (
                 <img src={session.user.image} alt="User" className="w-8 h-8 rounded-full" />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold">
-                    {session?.user?.name?.[0] || 'U'}
+                <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-xs font-bold uppercase">
+                    {(session?.user?.name?.[0] || session?.user?.email?.[0] || 'U')}
                 </div>
               )}
               <div className="flex flex-col min-w-0">

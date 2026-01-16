@@ -36,6 +36,8 @@ export default function InboxPage() {
 
   useEffect(() => {
     fetchInbox();
+    const interval = setInterval(fetchInbox, 5000);
+    return () => clearInterval(interval);
   }, [session?.user?.email]);
 
   return <EmailList title="Inbox" items={emails} isLoading={loading} onRefresh={fetchInbox} />;
