@@ -99,7 +99,7 @@ router.get('/inbox/:email', async (req, res) => {
     try {
         const jobs = await prisma.emailJob.findMany({
             where: {
-                recipient: email,
+                recipient: { equals: email, mode: 'insensitive' },
                 status: 'COMPLETED' // Only show emails that have actually been sent
             },
             include: {
