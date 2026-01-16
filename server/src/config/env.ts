@@ -16,20 +16,29 @@ const envSchema = z.object({
     MAX_EMAILS_PER_HOUR: z.string().default('10'),
 });
 
+const _env = envSchema.safeParse(process.env);
+
+if (!_env.success) {
+    console.error("❌ Invalid environment variables:", _env.error.format());
+    process.exit(1);
+}
+
+const env = _env.data;
+
 export const config = {
-    port: process.env.PORT || 3000,
-    databaseUrl: process.env.DATABASE_URL,
+    port: parseInt(env.PORT, 10),
+    databaseUrl: env.DATABASE_URL,
     redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        host: env.REDIS_HOST,
+        port: parseInt(env.REDIS_PORT, 10),
     },
     google: {
-        clientId: process.env.GOOGLE_CLIENT_ID || '',
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
-        callbackUrl: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback'
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+        callbackUrl: process.env.GOOGLE_CALLBACK_URL || `http://localhost:${env.PORT}/api/auth/google/callback`
     },
-    clientUrl: process.env.CLIENT_URL || 'http://localhost:3001',
-    jwtSecret: process.env.JWT_SECRET || 'secret',
-    workerConcurrency: parseInt(process.env.WORKER_CONCURRENCY || '5', 10),
-    maxEmailsPerHour: parseInt(process.env.MAX_EMAILS_PER_HOUR || '10', 10)
+    clientUrl: env.CLIENT_URL,
+    jwtSecret: env.JWT_SECRET,
+    workerConcurrency: parseInt(env.WORKER_CONCURRENCY, 10),
+    maxEmailsPerHour: parseInt(env.MAX_EMAILS_PER_HOUR, 10)
 };
