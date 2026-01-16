@@ -165,6 +165,9 @@ export default function ComposePage() {
         }
     }
 
+    setRecipients([]);
+    setAttachments([]);
+
     // Trigger immediate sidebar update
     window.dispatchEvent(new Event('refresh-sidebar'));
     
@@ -173,8 +176,6 @@ export default function ComposePage() {
     } else {
         router.push('/dashboard/scheduled');
     }
-    setRecipients([]);
-    setAttachments([]);
   };
 
   // ... [Rest of JSX for Layout, Toolbar, Inputs matches previous design]
