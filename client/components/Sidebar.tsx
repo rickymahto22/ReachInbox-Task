@@ -195,7 +195,12 @@ export default function Sidebar() {
         </nav>
       </div>
       
-
+      {/* DEBUG SECTION - REMOVE LATER */}
+      <div className="mt-auto p-2 bg-gray-200 rounded text-[10px] break-all font-mono text-gray-600">
+          <p><strong>Debug Info:</strong></p>
+          <p>API: {process.env.NEXT_PUBLIC_API_URL || 'UNDEFINED'}</p>
+          <p>ID: {(session?.user as any)?.id || 'MISSING'}</p>
+      </div>
 
     </div>
   );
