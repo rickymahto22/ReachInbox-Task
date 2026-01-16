@@ -170,11 +170,7 @@ export default function ComposePage() {
     // Trigger immediate sidebar update
     window.dispatchEvent(new Event('refresh-sidebar'));
     
-    if (type === 'now') {
-        router.push('/dashboard/sent');
-    } else {
-        router.push('/dashboard/scheduled');
-    }
+    router.push('/dashboard/scheduled');
     setRecipients([]);
     setAttachments([]);
   };

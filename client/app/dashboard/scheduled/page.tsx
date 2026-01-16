@@ -19,12 +19,7 @@ export default function ScheduledPage() {
              // Filter for scheduled (PENDING or DELAYED) - STRICTLY FUTURE
             const now = new Date();
             const scheduled = data
-                .filter((job: any) => {
-                    if (job.status === 'PENDING' || job.status === 'DELAYED') {
-                        return new Date(job.scheduledAt) > now;
-                    }
-                    return false;
-                })
+                .filter((job: any) => job.status === 'PENDING' || job.status === 'DELAYED')
                 .map((job: any) => ({
                     id: job.id,
                     recipient: job.recipient,
