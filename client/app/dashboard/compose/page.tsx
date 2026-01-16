@@ -172,7 +172,7 @@ export default function ComposePage() {
     window.dispatchEvent(new Event('refresh-sidebar'));
     
     if (type === 'now') {
-        router.push('/dashboard/sent');
+        window.location.href = '/dashboard/sent';
     } else {
         router.push('/dashboard/scheduled');
     }
