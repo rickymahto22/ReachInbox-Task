@@ -165,8 +165,6 @@ export default function ComposePage() {
         }
     }
 
-    alert(`Successfully scheduled/sent ${successCount} emails`);
-    
     // Trigger immediate sidebar update
     window.dispatchEvent(new Event('refresh-sidebar'));
     
