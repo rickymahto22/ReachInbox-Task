@@ -120,6 +120,10 @@ export default function ComposePage() {
             targets = Array.from(new Set([...targets, ...pendingEmails]));
             setRecipients(targets);
             setInputValue('');
+        } else {
+            // Input exists but regex didn't match anything
+            alert("The email address in the 'To' field is invalid. Please check the format.");
+            return;
         }
     }
 
