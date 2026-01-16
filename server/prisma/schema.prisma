@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  googleId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  jobs      EmailJob[]
+}
+
+model EmailJob {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  recipient       String
+  subject         String
+  body            String
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, DELAYED
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  messageId       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // For idempotency and tracking
+  jobId           String? // BullMQ Job ID
+  attachments     Json?   // Store attachment metadata: [{ filename, path, size }]
+}
+
+// Optional: for custom rate limiting tracking in DB if Redis persistence isn't enough
+model RateLimit {
+  id        String   @id @default(uuid())
+  userId    String
+  windowStart DateTime
+  count     Int      @default(0)
+  
+  @@unique([userId, windowStart])
+}
