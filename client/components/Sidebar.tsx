@@ -20,41 +20,51 @@ export default function Sidebar() {
 
   useEffect(() => {
     async function fetchCounts() {
-        if (session?.user && (session.user as any).id) {
-            try {
-                // Fetch Sent/Scheduled
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${(session.user as any).id}`);
-                let scheduled = 0;
-                let sent = 0;
-                let inbox = 0;
+        if (!session?.user) return;
 
-                if (res.ok) {
-                    const data = await res.json();
-                    const now = new Date();
-                    scheduled = data.filter((job: any) => {
-                        if (job.status === 'PENDING' || job.status === 'DELAYED') {
-                             const scheduledTime = new Date(job.scheduledAt);
-                             return scheduledTime > now;
-                        }
-                        return false;
-                    }).length;
-                    sent = data.filter((job: any) => job.status === 'COMPLETED').length;
-                }
+        // Debug: Log to see if we have the ID
+        console.log("Fetching counts for user:", (session.user as any).id);
 
-                // Fetch Inbox Count
-                if (session.user.email) {
-                    const resInbox = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/inbox/${session.user.email}`);
-                    if (resInbox.ok) {
-                        const dataInbox = await resInbox.json();
-                        inbox = dataInbox.length;
+        if (!(session.user as any).id) {
+             console.warn("User ID is missing in session. Login sync might have failed.");
+             return;
+        }
+
+        try {
+            // Fetch Sent/Scheduled
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${(session.user as any).id}`);
+            let scheduled = 0;
+            let sent = 0;
+            let inbox = 0;
+
+            if (res.ok) {
+                const data = await res.json();
+                const now = new Date();
+                scheduled = data.filter((job: any) => {
+                    if (job.status === 'PENDING' || job.status === 'DELAYED') {
+                            const scheduledTime = new Date(job.scheduledAt);
+                            return scheduledTime > now;
                     }
-                }
-
-                setCounts({ scheduled, sent, inbox });
-
-            } catch (err) {
-                console.error("Failed to fetch sidebar counts", err);
+                    return false;
+                }).length;
+                sent = data.filter((job: any) => job.status === 'COMPLETED').length;
+            } else {
+                console.error("Fetch counts failed:", res.status);
             }
+
+            // Fetch Inbox Count
+            if (session.user.email) {
+                const resInbox = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/inbox/${session.user.email}`);
+                if (resInbox.ok) {
+                    const dataInbox = await resInbox.json();
+                    inbox = dataInbox.length;
+                }
+            }
+
+            setCounts({ scheduled, sent, inbox });
+
+        } catch (err) {
+            console.error("Failed to fetch sidebar counts", err);
         }
     }
     
@@ -66,8 +76,8 @@ export default function Sidebar() {
     };
     window.addEventListener('refresh-sidebar', handleRefresh);
 
-    // Poll every 1s for "instant" updates
-    const interval = setInterval(() => { if(session) fetchCounts() }, 1000);
+    // Poll every 5s (reduced from 1s to stop "reloading" feel)
+    const interval = setInterval(() => { if(session) fetchCounts() }, 5000);
     return () => {
         clearInterval(interval);
         window.removeEventListener('refresh-sidebar', handleRefresh);
@@ -85,6 +95,14 @@ export default function Sidebar() {
       <div className="mb-8">
         <h1 className="text-2xl font-black tracking-tighter text-gray-900">ReachInbox</h1>
       </div>
+
+      {/* Connection Warning */}
+      {session && !(session.user as any).id && (
+          <div className="mb-4 bg-red-50 border border-red-200 p-2 rounded text-xs text-red-600">
+              ⚠️ <strong>Connection Error</strong><br/>
+              Backend sync failed. Please <strong>Logout</strong> and Login again.
+          </div>
+      )}
 
       {/* User Profile & Dropdown */}
       <div className="relative mb-6">
