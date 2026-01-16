@@ -19,13 +19,7 @@ export default function ScheduledPage() {
              // Filter for scheduled (PENDING or DELAYED) - STRICTLY FUTURE
             const now = new Date();
             const scheduled = data
-                .filter((job: any) => {
-                    if (job.status === 'COMPLETED' || job.status === 'FAILED') return false;
-                    // Only show if scheduled time is significantly in the future (e.g. > 1 min from now users POV)
-                    // Or if they are PENDING but the time is clearly future.
-                    const scheduledTime = new Date(job.scheduledAt);
-                    return scheduledTime > now; 
-                })
+                .filter((job: any) => job.status === 'PENDING' || job.status === 'DELAYED')
                 .map((job: any) => ({
                     id: job.id,
                     recipient: job.recipient,
