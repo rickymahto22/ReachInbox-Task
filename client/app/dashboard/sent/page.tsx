@@ -15,16 +15,27 @@ export default function SentPage() {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${(session.user as any).id}`);
         if (res.ok) {
           const data = await res.json();
-           // Filter for COMPLETED only (Strict Revert)
+           
+          const now = new Date();
+          // Filter for COMPLETED OR (PENDING/DELAYED in the past/now)
           const sent = data
-              .filter((job: any) => job.status === 'COMPLETED')
+              .filter((job: any) => {
+                  if (job.status === 'COMPLETED') return true;
+                  // Start showing as "sent" (sending) if status is PENDING/DELAYED and time has passed
+                  if ((job.status === 'PENDING' || job.status === 'DELAYED')) {
+                      return new Date(job.scheduledAt) <= now;
+                  }
+                  return false;
+              })
               .map((job: any) => ({
                   id: job.id,
                   recipient: job.recipient,
                   subject: job.subject,
                   body: job.body,
-                  status: 'sent',
-                  date: job.sentAt ? new Date(job.sentAt).toLocaleString() : 'Sent'
+                  status: job.status === 'COMPLETED' ? 'sent' : 'sent', // Show as sent/sending
+                  date: job.status === 'COMPLETED' 
+                        ? (job.sentAt ? new Date(job.sentAt).toLocaleString() : 'Sent')
+                        : 'Sending...'
               }));
           setEmails(sent);
         }
