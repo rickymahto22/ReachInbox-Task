@@ -40,13 +40,9 @@ export default function Sidebar() {
             if (res.ok) {
                 const data = await res.json();
                 const now = new Date();
-                scheduled = data.filter((job: any) => {
-                    if (job.status === 'PENDING' || job.status === 'DELAYED') {
-                            const scheduledTime = new Date(job.scheduledAt);
-                            return scheduledTime > now;
-                    }
-                    return false;
-                }).length;
+                scheduled = data.filter((job: any) => 
+                    job.status === 'PENDING' || job.status === 'DELAYED'
+                ).length;
                 sent = data.filter((job: any) => job.status === 'COMPLETED').length;
             } else {
                 console.error("Fetch counts failed:", res.status);
@@ -193,13 +189,6 @@ export default function Sidebar() {
             );
           })}
         </nav>
-      </div>
-      
-      {/* DEBUG SECTION - REMOVE LATER */}
-      <div className="mt-auto p-2 bg-gray-200 rounded text-[10px] break-all font-mono text-gray-600">
-          <p><strong>Debug Info:</strong></p>
-          <p>API: {process.env.NEXT_PUBLIC_API_URL || 'UNDEFINED'}</p>
-          <p>ID: {(session?.user as any)?.id || 'MISSING'}</p>
       </div>
 
     </div>
