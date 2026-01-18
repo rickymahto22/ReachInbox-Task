@@ -151,7 +151,7 @@ export default function ComposePage() {
         // Use Promise.all to send in parallel and not block sequentially
         await Promise.all(targets.map(async (email) => {
              const controller = new AbortController();
-             const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
              
              try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
@@ -265,9 +265,9 @@ export default function ComposePage() {
             <label className="w-24 text-gray-500 font-medium self-start mt-2">To</label>
             <div className="flex-1 flex flex-wrap items-center gap-2">
                 {recipients.slice(0, 3).map((email, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                    <div key={idx} className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-3 py-1 rounded-full text-sm">
                         <span>{email}</span>
-                        <button onClick={() => removeRecipient(email)} className="hover:text-gray-900"><X size={12}/></button>
+                        <button onClick={() => removeRecipient(email)} className="hover:text-green-900"><X size={12}/></button>
                     </div>
                 ))}
                 
