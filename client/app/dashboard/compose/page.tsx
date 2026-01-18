@@ -177,11 +177,10 @@ export default function ComposePage() {
         window.dispatchEvent(new Event('refresh-sidebar'));
         
         if (type === 'now') {
-            router.push('/dashboard/sent');
+            window.location.href = '/dashboard/sent';
         } else {
             router.push('/dashboard/scheduled');
         }
-        router.refresh();
     } catch (error) {
         console.error("Critical error in handleSend:", error);
         alert("An error occurred while sending");
@@ -231,7 +230,7 @@ export default function ComposePage() {
                 disabled={isSending}
                 className={`bg-green-600 text-white font-semibold py-2 px-6 rounded-md transition-colors ${isSending ? 'opacity-70 cursor-wait' : 'hover:bg-green-700'}`}
             >
-                {isSending ? 'Sending...' : 'Send Now'}
+                Send Now
             </button>
         </div>
       </div>
@@ -250,9 +249,9 @@ export default function ComposePage() {
             <label className="w-24 text-gray-500 font-medium self-start mt-2">To</label>
             <div className="flex-1 flex flex-wrap items-center gap-2">
                 {recipients.slice(0, 3).map((email, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-3 py-1 rounded-full text-sm">
+                    <div key={idx} className="flex items-center gap-2 bg-gray-100 border border-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">
                         <span>{email}</span>
-                        <button onClick={() => removeRecipient(email)} className="hover:text-green-900"><X size={12}/></button>
+                        <button onClick={() => removeRecipient(email)} className="hover:text-gray-900"><X size={12}/></button>
                     </div>
                 ))}
                 
@@ -373,7 +372,7 @@ export default function ComposePage() {
                     disabled={isSending}
                     className={`w-full bg-green-600 text-white rounded py-2 ${isSending ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                    {isSending ? 'Scheduling...' : 'Schedule Send'}
+                    {isSending ? 'Schedule Send' : 'Schedule Send'}
                 </button>
                  <button 
                     onClick={() => setShowSchedule(false)}
