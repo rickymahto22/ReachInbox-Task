@@ -154,58 +154,46 @@ export default function ComposePage() {
         attachments: attachments.length > 0 ? attachments : undefined
     };
 
-    try {
-        // Use Promise.all to send in parallel and not block sequentially
-        // We added a short timeout (5s) to prevent hanging, but we also won't block navigation on success.
-        await Promise.all(targets.map(async (email) => {
-             const controller = new AbortController();
-             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-             
-             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ...payloadBase,
-                        recipient: email,
-                        scheduledAt: type === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
-                    }),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                
-                if (!res.ok) {
-                    console.error(`Failed to send to ${email}:`, await res.text());
-                }
-             } catch (err) {
-                 if ((err as Error).name === 'AbortError') {
-                    console.error(`Request timed out for ${email}`);
-                 } else {
-                    console.error(`Fetch error for ${email}:`, err);
-                 }
-             }
-        }));
+    // Fire and Forget - "Instant Switch"
+    // We do NOT await this. We let it run in the background.
+    const sendPromise = Promise.all(targets.map(async (email) => {
+         const controller = new AbortController();
+         // Longer timeout for background process since we don't block UI
+         const timeoutId = setTimeout(() => controller.abort(), 30000); 
+         
+         try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...payloadBase,
+                    recipient: email,
+                    scheduledAt: type === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
+                }),
+                signal: controller.signal,
+                keepalive: true // Critical: Ensure request survives page navigation
+            });
+            clearTimeout(timeoutId);
+            
+            if (!res.ok) {
+                console.error(`Failed to send to ${email}:`, await res.text());
+            }
+         } catch (err) {
+             console.error(`Fetch error for ${email}:`, err);
+         }
+    }));
 
-        setRecipients([]);
-        setAttachments([]);
+    // Start background cleanup (clearing inputs) - we don't need to wait for this to update UI
+    // But since we are navigating away, we mainly care about resetting if the user comes back? 
+    // Actually, if we navigate away, state is lost. So no need to reset strictly.
+    // But we might want to trigger the sidebar refresh locally if possible?
+    window.dispatchEvent(new Event('refresh-sidebar'));
 
-        // Trigger immediate sidebar update
-        window.dispatchEvent(new Event('refresh-sidebar'));
-        
-        // Navigation - Client Side for Instant feel
-        if (type === 'now') {
-            router.push('/dashboard/sent');
-        } else {
-            router.push('/dashboard/scheduled');
-        }
-    } catch (error) {
-        console.error("Critical error in handleSend:", error);
-         // Even on error, navigate
-         if (type === 'now') {
-            router.push('/dashboard/sent');
-        }
-    } finally {
-        setIsSending(false);
+    // INSTANT NAVIGATION
+    if (type === 'now') {
+        router.push('/dashboard/sent');
+    } else {
+        router.push('/dashboard/scheduled');
     }
   };
 
