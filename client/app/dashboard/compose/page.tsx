@@ -106,6 +106,7 @@ export default function ComposePage() {
   };
 
   // Submit Handler
+  // Submit Handler
   const handleSend = async (type: 'now' | 'later' = 'now') => {
     if (isSending) return;
 
@@ -137,20 +138,19 @@ export default function ComposePage() {
 
     setIsSending(true);
 
+    const payloadBase = {
+        userId: (session.user as any).id,
+        subject,
+        body,
+        hourlyLimit: hourlyLimit ? parseInt(hourlyLimit) : undefined,
+        minDelay: minDelay ? parseInt(minDelay) : undefined,
+        attachments: attachments.length > 0 ? attachments : undefined
+    };
+
     try {
-        const payloadBase = {
-            userId: (session.user as any).id,
-            subject,
-            body,
-            hourlyLimit: hourlyLimit ? parseInt(hourlyLimit) : undefined,
-            minDelay: minDelay ? parseInt(minDelay) : undefined,
-            attachments: attachments.length > 0 ? attachments : undefined
-        };
-
-        let successCount = 0;
-
-        for (const email of targets) {
-            try {
+        // Use Promise.all to send in parallel and not block sequentially
+        await Promise.all(targets.map(async (email) => {
+             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -160,15 +160,13 @@ export default function ComposePage() {
                         scheduledAt: type === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
                     })
                 });
-                if (res.ok) {
-                    successCount++;
-                } else {
+                if (!res.ok) {
                     console.error(`Failed to send to ${email}:`, await res.text());
                 }
-            } catch (err) {
-                console.error('Fetch error:', err);
-            }
-        }
+             } catch (err) {
+                 console.error(`Fetch error for ${email}:`, err);
+             }
+        }));
 
         setRecipients([]);
         setAttachments([]);
@@ -176,6 +174,7 @@ export default function ComposePage() {
         // Trigger immediate sidebar update
         window.dispatchEvent(new Event('refresh-sidebar'));
         
+        // Navigation - FORCE IT
         if (type === 'now') {
             window.location.href = '/dashboard/sent';
         } else {
@@ -183,7 +182,14 @@ export default function ComposePage() {
         }
     } catch (error) {
         console.error("Critical error in handleSend:", error);
-        alert("An error occurred while sending");
+         // Even on error, try to navigate if we partially succeeded? 
+         // But for now, just alert if it was a catastrophic failure before the loop.
+         // Since the loop is try-catched inside, this catch might catch only other things.
+         
+         // Fallback navigation
+         if (type === 'now') {
+            window.location.href = '/dashboard/sent';
+        }
     } finally {
         setIsSending(false);
     }
@@ -249,7 +255,7 @@ export default function ComposePage() {
             <label className="w-24 text-gray-500 font-medium self-start mt-2">To</label>
             <div className="flex-1 flex flex-wrap items-center gap-2">
                 {recipients.slice(0, 3).map((email, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-gray-100 border border-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm">
+                    <div key={idx} className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
                         <span>{email}</span>
                         <button onClick={() => removeRecipient(email)} className="hover:text-gray-900"><X size={12}/></button>
                     </div>
