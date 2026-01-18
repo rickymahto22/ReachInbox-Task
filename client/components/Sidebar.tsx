@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import Link from 'next/link';
 import { 
   Clock, 
   Send, 
@@ -136,8 +137,9 @@ export default function Sidebar() {
           {/* Dropdown Menu */}
           {showMenu && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10 overflow-hidden py-1">
-                <button 
-                    onClick={() => { setShowMenu(false); router.push('/dashboard/inbox'); }}
+                <Link 
+                    href="/dashboard/inbox"
+                    onClick={() => setShowMenu(false)}
                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between"
                 >
                     <div className="flex items-center gap-2">
@@ -149,7 +151,7 @@ export default function Sidebar() {
                             {counts.inbox}
                         </span>
                     )}
-                </button>
+                </Link>
                  <div className="h-px bg-gray-100 my-1"></div>
                  <button 
                     onClick={() => signOut({ callbackUrl: '/' })}
@@ -163,12 +165,12 @@ export default function Sidebar() {
       </div>
 
       {/* Compose Button */}
-      <button 
-        onClick={() => router.push('/dashboard/compose')}
+      <Link 
+        href="/dashboard/compose"
         className="w-full bg-white border-2 border-green-500 text-green-600 font-bold py-2.5 px-4 rounded-full flex items-center justify-center gap-2 mb-8 hover:bg-green-50 transition-colors shadow-sm"
       >
         <span className="text-lg">+</span> Compose
-      </button>
+      </Link>
 
       {/* Navigation */}
       <div className="flex-1">
@@ -179,9 +181,10 @@ export default function Sidebar() {
             const Icon = item.icon;
             
             return (
-              <button
+              <Link
                 key={item.name}
-                onClick={() => router.push(item.path)}
+                href={item.path}
+                prefetch={true}
                 className={clsx(
                   'w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                   isActive 
@@ -196,7 +199,7 @@ export default function Sidebar() {
                 <span className={clsx("text-xs", isActive ? "text-gray-900" : "text-gray-400")}>
                     {item.count}
                 </span>
-              </button>
+              </Link>
             );
           })}
         </nav>
