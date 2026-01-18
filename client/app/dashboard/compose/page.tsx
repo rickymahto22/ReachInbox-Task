@@ -32,6 +32,7 @@ export default function ComposePage() {
   // Scheduling State
   const [showSchedule, setShowSchedule] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<string>('');
+  const [isSending, setIsSending] = useState(false);
 
   // Parsers (for Bulk CSV upload - kept below as requested to fix "above changes" usually means restore previous valid state + new feature, 
   // but User explicitly said "no don't add csv button make a normal pdf, photo...". 
@@ -106,6 +107,8 @@ export default function ComposePage() {
 
   // Submit Handler
   const handleSend = async (type: 'now' | 'later' = 'now') => {
+    if (isSending) return;
+
     if (!session?.user || !(session.user as any).id) {
         alert("Please log in first");
         return;
@@ -132,49 +135,58 @@ export default function ComposePage() {
         return;
     }
 
-    const payloadBase = {
-        userId: (session.user as any).id,
-        subject,
-        body,
-        hourlyLimit: hourlyLimit ? parseInt(hourlyLimit) : undefined,
-        minDelay: minDelay ? parseInt(minDelay) : undefined,
-        attachments: attachments.length > 0 ? attachments : undefined
-    };
+    setIsSending(true);
 
-    let successCount = 0;
+    try {
+        const payloadBase = {
+            userId: (session.user as any).id,
+            subject,
+            body,
+            hourlyLimit: hourlyLimit ? parseInt(hourlyLimit) : undefined,
+            minDelay: minDelay ? parseInt(minDelay) : undefined,
+            attachments: attachments.length > 0 ? attachments : undefined
+        };
+
+        let successCount = 0;
 
         for (const email of targets) {
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...payloadBase,
-                    recipient: email,
-                    scheduledAt: type === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
-                })
-            });
-            if (res.ok) {
-                successCount++;
-            } else {
-                console.error(`Failed to send to ${email}:`, await res.text());
-                // alert(`Error for ${email}: ${res.status} ${res.statusText}`); 
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...payloadBase,
+                        recipient: email,
+                        scheduledAt: type === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
+                    })
+                });
+                if (res.ok) {
+                    successCount++;
+                } else {
+                    console.error(`Failed to send to ${email}:`, await res.text());
+                }
+            } catch (err) {
+                console.error('Fetch error:', err);
             }
-        } catch (err) {
-            console.error('Fetch error:', err);
         }
-    }
 
-    setRecipients([]);
-    setAttachments([]);
+        setRecipients([]);
+        setAttachments([]);
 
-    // Trigger immediate sidebar update
-    window.dispatchEvent(new Event('refresh-sidebar'));
-    
-    if (type === 'now') {
-        window.location.href = '/dashboard/sent';
-    } else {
-        router.push('/dashboard/scheduled');
+        // Trigger immediate sidebar update
+        window.dispatchEvent(new Event('refresh-sidebar'));
+        
+        if (type === 'now') {
+            router.push('/dashboard/sent');
+        } else {
+            router.push('/dashboard/scheduled');
+        }
+        router.refresh();
+    } catch (error) {
+        console.error("Critical error in handleSend:", error);
+        alert("An error occurred while sending");
+    } finally {
+        setIsSending(false);
     }
   };
 
@@ -214,11 +226,12 @@ export default function ComposePage() {
             >
                 Send Later
             </button>
-             <button 
+            <button 
                 onClick={() => handleSend('now')}
-                className="bg-green-600 text-white hover:bg-green-700 font-semibold py-2 px-6 rounded-md transition-colors"
+                disabled={isSending}
+                className={`bg-green-600 text-white font-semibold py-2 px-6 rounded-md transition-colors ${isSending ? 'opacity-70 cursor-wait' : 'hover:bg-green-700'}`}
             >
-                Send Now
+                {isSending ? 'Sending...' : 'Send Now'}
             </button>
         </div>
       </div>
@@ -357,9 +370,10 @@ export default function ComposePage() {
                 />
                 <button 
                     onClick={() => handleSend('later')}
-                    className="w-full bg-green-600 text-white rounded py-2"
+                    disabled={isSending}
+                    className={`w-full bg-green-600 text-white rounded py-2 ${isSending ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                    Schedule Send
+                    {isSending ? 'Scheduling...' : 'Schedule Send'}
                 </button>
                  <button 
                     onClick={() => setShowSchedule(false)}
