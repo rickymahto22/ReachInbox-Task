@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Papa from 'papaparse';
 import { 
@@ -105,6 +105,13 @@ export default function ComposePage() {
     setRecipients(prev => prev.filter(r => r !== email));
   };
 
+
+    // Prefetch for speed
+    useEffect(() => {
+        router.prefetch('/dashboard/sent');
+        router.prefetch('/dashboard/scheduled');
+    }, [router]);
+
   // Submit Handler
   // Submit Handler
   const handleSend = async (type: 'now' | 'later' = 'now') => {
@@ -149,6 +156,7 @@ export default function ComposePage() {
 
     try {
         // Use Promise.all to send in parallel and not block sequentially
+        // We added a short timeout (5s) to prevent hanging, but we also won't block navigation on success.
         await Promise.all(targets.map(async (email) => {
              const controller = new AbortController();
              const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
@@ -184,21 +192,17 @@ export default function ComposePage() {
         // Trigger immediate sidebar update
         window.dispatchEvent(new Event('refresh-sidebar'));
         
-        // Navigation - FORCE IT
+        // Navigation - Client Side for Instant feel
         if (type === 'now') {
-            window.location.href = '/dashboard/sent';
+            router.push('/dashboard/sent');
         } else {
             router.push('/dashboard/scheduled');
         }
     } catch (error) {
         console.error("Critical error in handleSend:", error);
-         // Even on error, try to navigate if we partially succeeded? 
-         // But for now, just alert if it was a catastrophic failure before the loop.
-         // Since the loop is try-catched inside, this catch might catch only other things.
-         
-         // Fallback navigation
+         // Even on error, navigate
          if (type === 'now') {
-            window.location.href = '/dashboard/sent';
+            router.push('/dashboard/sent');
         }
     } finally {
         setIsSending(false);
