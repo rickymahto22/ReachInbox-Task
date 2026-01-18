@@ -42,7 +42,8 @@ router.post('/', async (req, res) => {
                 recipient,
                 subject,
                 body,
-                status: 'PENDING',
+                status: delay === 0 ? 'COMPLETED' : 'PENDING', // Instant complete for instant send
+                sentAt: delay === 0 ? new Date() : undefined, // Mark sent time immediately
                 scheduledAt: scheduledDate,
                 attachments: attachments ? JSON.parse(JSON.stringify(attachments)) : undefined // Ensure JSON compatibility
             }
@@ -100,7 +101,13 @@ router.get('/inbox/:email', async (req, res) => {
         const jobs = await prisma.emailJob.findMany({
             where: {
                 recipient: { equals: email, mode: 'insensitive' },
-                status: 'COMPLETED' // Only show emails that have actually been sent
+                OR: [
+                    { status: 'COMPLETED' },
+                    {
+                        status: { in: ['PENDING', 'DELAYED'] },
+                        scheduledAt: { lte: new Date() }
+                    }
+                ]
             },
             include: {
                 user: { // Include sender info
