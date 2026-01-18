@@ -150,6 +150,9 @@ export default function ComposePage() {
     try {
         // Use Promise.all to send in parallel and not block sequentially
         await Promise.all(targets.map(async (email) => {
+             const controller = new AbortController();
+             const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+             
              try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule`, {
                     method: 'POST',
@@ -158,13 +161,20 @@ export default function ComposePage() {
                         ...payloadBase,
                         recipient: email,
                         scheduledAt: type === 'later' && scheduledDate ? new Date(scheduledDate).toISOString() : undefined
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
+                
                 if (!res.ok) {
                     console.error(`Failed to send to ${email}:`, await res.text());
                 }
              } catch (err) {
-                 console.error(`Fetch error for ${email}:`, err);
+                 if ((err as Error).name === 'AbortError') {
+                    console.error(`Request timed out for ${email}`);
+                 } else {
+                    console.error(`Fetch error for ${email}:`, err);
+                 }
              }
         }));
 
