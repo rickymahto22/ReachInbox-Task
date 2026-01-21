@@ -5,12 +5,12 @@ export const sendEmail = async (to: string, subject: string, html: string, attac
     const testAccount = await nodemailer.createTestAccount();
 
     const transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false, // true for 465, false for other ports
+        host: testAccount.smtp.host,
+        port: testAccount.smtp.port,
+        secure: testAccount.smtp.secure,
         auth: {
-            user: testAccount.user, // generated ethereal user
-            pass: testAccount.pass, // generated ethereal password
+            user: testAccount.user,
+            pass: testAccount.pass,
         },
     });
 
@@ -24,7 +24,8 @@ export const sendEmail = async (to: string, subject: string, html: string, attac
 
     const previewUrl = nodemailer.getTestMessageUrl(info);
     console.log('Message sent: %s', info.messageId);
-    console.log('Preview URL: %s', previewUrl);
+    // Exact format requested by user
+    console.log('Ethereal Preview: %s', previewUrl);
 
     return { info, previewUrl };
 };
