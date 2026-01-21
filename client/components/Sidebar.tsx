@@ -85,7 +85,9 @@ export default function Sidebar() {
     window.addEventListener('refresh-sidebar', handleRefresh);
 
     // Poll every 5s (reduced from 1s to stop "reloading" feel)
-    const interval = setInterval(() => { if(session) fetchCounts() }, 5000);
+    const interval = setInterval(() => { 
+        if(session && !document.hidden) fetchCounts();
+    }, 5000);
     return () => {
         clearInterval(interval);
         window.removeEventListener('refresh-sidebar', handleRefresh);
