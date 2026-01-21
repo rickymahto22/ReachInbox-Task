@@ -36,7 +36,14 @@ export default function InboxPage() {
 
   useEffect(() => {
     fetchInbox();
-    const interval = setInterval(() => fetchInbox(true), 5000);
+    
+    // Polling with optimization: Stop polling if tab is hidden
+    const interval = setInterval(() => {
+        if (!document.hidden) {
+            fetchInbox(true);
+        }
+    }, 5000);
+
     return () => clearInterval(interval);
   }, [session?.user?.email]);
 
