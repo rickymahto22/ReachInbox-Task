@@ -28,6 +28,7 @@ const env = _env.data;
 export const config = {
     port: parseInt(env.PORT, 10),
     databaseUrl: env.DATABASE_URL,
+    redisUrl: process.env.REDIS_URL, // Optional, typically provided by Render
     redis: {
         host: env.REDIS_HOST,
         port: parseInt(env.REDIS_PORT, 10),
