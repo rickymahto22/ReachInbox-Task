@@ -11,6 +11,7 @@ interface EmailItem {
     body: string;
     status: 'scheduled' | 'sent' | 'inbox'; // Added inbox status
     date: string;
+    previewUrl?: string | null; // Added preview URL
 }
 
 interface EmailListProps {
@@ -102,6 +103,18 @@ const EmailListItem = ({ item }: { item: EmailItem }) => {
                     <span className="font-medium text-gray-900">{item.subject}</span>
                     <span className="text-gray-400">-</span>
                     <span className="truncate">{item.body}</span>
+                    
+                    {item.previewUrl && (
+                        <a 
+                            href={item.previewUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()} // Prevent row click
+                            className="ml-2 text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded border border-blue-100"
+                        >
+                            View Preview ↗
+                        </a>
+                    )}
                 </div>
             </div>
             
