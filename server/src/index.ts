@@ -10,7 +10,11 @@ import './worker'; // Start the BullMQ worker
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: ['https://reach-inbox-task-sable.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(morgan('dev'));

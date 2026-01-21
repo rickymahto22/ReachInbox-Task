@@ -1,11 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { Queue } from 'bullmq';
 import { redisConnection } from '../config/redis';
 import { prisma } from '../config/db';
 import { z } from 'zod';
+import { EmailJobData, ScheduleEmailRequest, ScheduleEmailResponse } from '../types';
 
 const router = Router();
-const emailQueue = new Queue('email-queue', { connection: redisConnection as any });
+const emailQueue = new Queue<EmailJobData>('email-queue', { connection: redisConnection as any });
 
 const scheduleSchema = z.object({
     recipient: z.string().email(),
@@ -22,9 +23,10 @@ const scheduleSchema = z.object({
     })).optional()
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request<{}, {}, ScheduleEmailRequest>, res: Response<ScheduleEmailResponse | { error: string, details?: any }>) => {
     try {
-        const { recipient, subject, body, userId, scheduledAt, hourlyLimit, minDelay, attachments } = scheduleSchema.parse(req.body);
+        const validated = scheduleSchema.parse(req.body);
+        const { recipient, subject, body, userId, scheduledAt, hourlyLimit, minDelay, attachments } = validated;
 
         // Calculate delay
         let delay = 0;
@@ -50,7 +52,7 @@ router.post('/', async (req, res) => {
         });
 
         // Add to Queue
-        const job = await emailQueue.add('send-email', {
+        const jobData: EmailJobData = {
             recipient,
             subject,
             body,
@@ -59,7 +61,9 @@ router.post('/', async (req, res) => {
             minDelay,
             emailJobId: jobRecord.id, // Pass DB ID to worker to avoid race condition
             attachments
-        }, {
+        };
+
+        const job = await emailQueue.add('send-email', jobData, {
             delay,
             jobId: jobRecord.id // Use DB ID as Job ID for tracking
         });
@@ -70,14 +74,15 @@ router.post('/', async (req, res) => {
             data: { jobId: job.id }
         });
 
-        res.json({ success: true, jobId: job.id, message: 'Email scheduled' });
+        res.json({ success: true, jobId: job.id || jobRecord.id, message: 'Email scheduled' });
     } catch (error: any) {
         console.error("Schedule Error:", error);
         if (error instanceof z.ZodError) {
-            // Fix: access error.issues instead of error.errors for Zod
-            res.status(400).json({ error: 'Validation Error', details: error.issues });
+            // Fix: Cast to any to access issues/errors safely across Zod versions
+            res.status(400).json({ error: 'Validation Error', details: (error as any).issues || (error as any).errors });
         } else {
-            res.status(500).json({ error: 'Internal Server Error', details: error.message });
+            const msg = error instanceof Error ? error.message : String(error);
+            res.status(500).json({ error: 'Internal Server Error', details: msg });
         }
     }
 });

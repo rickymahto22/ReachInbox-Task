@@ -3,6 +3,7 @@ import { prisma } from './config/db';
 import { redisConnection } from './config/redis';
 import { sendEmail } from './services/emailService';
 import { config } from './config/env';
+import { EmailJobData } from './types';
 
 const EMAIL_QUEUE_NAME = 'email-queue';
 const MIN_DELAY_MS = 2000; // Default minimum delay
@@ -12,7 +13,7 @@ const MIN_DELAY_MS = 2000; // Default minimum delay
 
 console.log("Worker initialized and listening to queue:", EMAIL_QUEUE_NAME);
 
-export const emailWorker = new Worker(EMAIL_QUEUE_NAME, async (job: Job) => {
+export const emailWorker = new Worker<EmailJobData>(EMAIL_QUEUE_NAME, async (job: Job<EmailJobData>) => {
     console.log(`[Worker] Picked up job ${job.id}`);
     const { recipient, subject, body, userId, emailJobId, attachments, hourlyLimit, minDelay } = job.data;
 
