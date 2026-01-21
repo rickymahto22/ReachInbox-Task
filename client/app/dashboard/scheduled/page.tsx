@@ -51,12 +51,8 @@ export default function ScheduledPage() {
         const handleRefresh = () => fetchEmails(true);
         window.addEventListener('refresh-sidebar', handleRefresh);
 
-          // Poll for status changes (e.g. Scheduled -> Sent)
-        const interval = setInterval(() => {
-             if (!document.hidden) {
-                 fetchEmails(true);
-             }
-        }, 5000);
+        // Poll for status changes (e.g. Scheduled -> Sent)
+        const interval = setInterval(() => fetchEmails(true), 5000);
 
         return () => {
             window.removeEventListener('refresh-sidebar', handleRefresh);

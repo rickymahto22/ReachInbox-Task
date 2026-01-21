@@ -23,9 +23,6 @@ export default function Home() {
     } else if (session) {
       router.push('/dashboard');
     }
-    
-    // Prefetch dashboard for faster transition
-    router.prefetch('/dashboard');
   }, [session, router]);
 
   const handleCredentialsLogin = async () => {
@@ -64,9 +61,6 @@ export default function Home() {
           disabled={isGoogleLoading || isCredentialsLoading}
           className={`w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-md flex items-center justify-center gap-3 transition-colors mb-6 cursor-pointer ${isGoogleLoading ? 'opacity-70' : ''}`}
         >
-          {isGoogleLoading ? (
-             <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
-          ) : (
              <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
                 fill="#4285F4"
@@ -85,7 +79,6 @@ export default function Home() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
             </svg>
-          )}
           Login with Google
         </button>
 

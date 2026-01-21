@@ -64,50 +64,46 @@ export default function EmailList({ title, items, isLoading, onRefresh }: EmailL
                     </div>
                 ) : (
                     <div>
-                        {items.map((item) => <EmailListItem key={item.id} item={item} />)}
+                        {items.map((item) => (
+                            <div 
+                                key={item.id} 
+                                onClick={() => router.push(`/dashboard/email/${item.id}`)}
+                                className="group px-8 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors flex items-start gap-4 cursor-pointer"
+                            >
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-semibold text-gray-900 text-sm">
+                                            {item.sender ? `From: ${item.sender}` : `To: ${item.recipient}`}
+                                        </span>
+                                        
+                                        {item.status === 'scheduled' ? (
+                                             <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100 text-[10px] font-medium tracking-wide">
+                                                <span className="w-2.5 h-2.5 rounded-full border border-current opacity-60 flex items-center justify-center">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                                </span>
+                                                {item.date} 
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-medium tracking-wide">
+                                               {item.status === 'inbox' ? 'Inbox' : 'Sent'}
+                                           </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                                        <span className="font-medium text-gray-900">{item.subject}</span>
+                                        <span className="text-gray-400">-</span>
+                                        <span className="truncate">{item.body}</span>
+                                    </div>
+                                </div>
+                                
+                                <button className="text-gray-300 hover:text-yellow-400 transition-colors">
+                                    <Star size={18} />
+                                </button>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>
         </div>
     );
 }
-
-const EmailListItem = ({ item }: { item: EmailItem }) => {
-    const router = useRouter();
-    return (
-        <div 
-            onClick={() => router.push(`/dashboard/email/${item.id}`)}
-            className="group px-8 py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors flex items-start gap-4 cursor-pointer"
-        >
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                    <span className="font-semibold text-gray-900 text-sm">
-                        {item.sender ? `From: ${item.sender}` : `To: ${item.recipient}`}
-                    </span>
-                    
-                    {item.status === 'scheduled' ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-50 text-orange-600 border border-orange-100 text-[10px] font-medium tracking-wide">
-                            <span className="w-2.5 h-2.5 rounded-full border border-current opacity-60 flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
-                            </span>
-                            {item.date} 
-                        </span>
-                    ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[10px] font-medium tracking-wide">
-                            {item.status === 'inbox' ? 'Inbox' : 'Sent'}
-                        </span>
-                    )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <span className="font-medium text-gray-900">{item.subject}</span>
-                    <span className="text-gray-400">-</span>
-                    <span className="truncate">{item.body}</span>
-                </div>
-            </div>
-            
-            <button className="text-gray-300 hover:text-yellow-400 transition-colors">
-                <Star size={18} />
-            </button>
-        </div>
-    );
-};
