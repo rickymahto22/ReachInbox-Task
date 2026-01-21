@@ -9,9 +9,9 @@ export default function InboxPage() {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchInbox = async () => {
+  const fetchInbox = async (silent = false) => {
     if (!session?.user?.email) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/inbox/${session.user.email}`);
         if (res.ok) {
@@ -36,9 +36,9 @@ export default function InboxPage() {
 
   useEffect(() => {
     fetchInbox();
-    const interval = setInterval(fetchInbox, 5000);
+    const interval = setInterval(() => fetchInbox(true), 5000);
     return () => clearInterval(interval);
   }, [session?.user?.email]);
 
-  return <EmailList title="Inbox" items={emails} isLoading={loading} onRefresh={fetchInbox} />;
+  return <EmailList title="Inbox" items={emails} isLoading={loading} onRefresh={() => fetchInbox(false)} />;
 }

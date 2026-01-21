@@ -9,8 +9,9 @@ export default function SentPage() {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchEmails = async () => {
+  const fetchEmails = async (silent = false) => {
     if (session?.user && (session.user as any).id) {
+      if (!silent) setLoading(true);
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${(session.user as any).id}`);
         if (res.ok) {
@@ -52,11 +53,11 @@ export default function SentPage() {
           fetchEmails();
 
           // Listen for immediate updates
-          const handleRefresh = () => fetchEmails();
+          const handleRefresh = () => fetchEmails(true);
           window.addEventListener('refresh-sidebar', handleRefresh);
 
           // Poll for status changes
-          const interval = setInterval(fetchEmails, 5000);
+          const interval = setInterval(() => fetchEmails(true), 5000);
 
           return () => {
               window.removeEventListener('refresh-sidebar', handleRefresh);
@@ -65,7 +66,5 @@ export default function SentPage() {
       }
     }, [session]);
   
-    if (loading) return <div className="p-8 text-gray-500">Loading sent emails...</div>;
-
-  return <EmailList title="Sent" items={emails} />;
+  return <EmailList title="Sent" items={emails} isLoading={loading} onRefresh={() => fetchEmails(false)} />;
 }

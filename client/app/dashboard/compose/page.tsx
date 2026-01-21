@@ -48,18 +48,30 @@ export default function ComposePage() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target?.result as string;
-            const extracted = parseEmails(text);
-            if (extracted.length > 0) {
-                setRecipients(prev => Array.from(new Set([...prev, ...extracted])));
-                alert(`Loaded ${extracted.length} emails from file`);
-            } else {
-                alert("No valid emails found in file");
+        Papa.parse(file, {
+            complete: (results) => {
+                const extracted: string[] = [];
+                results.data.forEach((row: any) => {
+                    // Assume single column or check all columns
+                    const rowValues = Object.values(row).join(' ');
+                    const found = parseEmails(rowValues);
+                    extracted.push(...found);
+                });
+                
+                if (extracted.length > 0) {
+                    setRecipients(prev => Array.from(new Set([...prev, ...extracted])));
+                    alert(`Loaded ${extracted.length} emails from file`);
+                } else {
+                    alert("No valid emails found in file");
+                }
+            },
+            header: false, // simpler for just grabbing emails from anywhere
+            skipEmptyLines: true,
+            error: (err) => {
+                console.error("CSV Parse Error:", err);
+                alert("Failed to parse CSV file");
             }
-        };
-        reader.readAsText(file);
+        });
     }
   };
 
@@ -92,9 +104,12 @@ export default function ComposePage() {
     if (['Enter', ',', ' '].includes(e.key)) {
         e.preventDefault();
         const value = inputValue.trim().replace(/,$/, '');
-        if (parseEmails(value).length > 0) {
-            setRecipients(prev => Array.from(new Set([...prev, value])));
-            setInputValue('');
+        if (value) {
+            const found = parseEmails(value);
+            if (found.length > 0) {
+                 setRecipients(prev => Array.from(new Set([...prev, ...found])));
+                 setInputValue('');
+            }
         }
     } else if (e.key === 'Backspace' && !inputValue && recipients.length > 0) {
         setRecipients(prev => prev.slice(0, -1));

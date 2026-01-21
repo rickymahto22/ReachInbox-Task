@@ -9,9 +9,9 @@ export default function ScheduledPage() {
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchEmails = async () => {
+  const fetchEmails = async (silent = false) => {
     if (session?.user && (session.user as any).id) {
-        setLoading(true);
+        if (!silent) setLoading(true);
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/schedule/${(session.user as any).id}`);
           if (res.ok) {
@@ -48,11 +48,11 @@ export default function ScheduledPage() {
         fetchEmails();
 
         // Listen for immediate updates (e.g. from Compose)
-        const handleRefresh = () => fetchEmails();
+        const handleRefresh = () => fetchEmails(true);
         window.addEventListener('refresh-sidebar', handleRefresh);
 
         // Poll for status changes (e.g. Scheduled -> Sent)
-        const interval = setInterval(fetchEmails, 5000);
+        const interval = setInterval(() => fetchEmails(true), 5000);
 
         return () => {
             window.removeEventListener('refresh-sidebar', handleRefresh);
@@ -61,5 +61,5 @@ export default function ScheduledPage() {
     }
   }, [session]);
 
-  return <EmailList title="Scheduled" items={emails} isLoading={loading} onRefresh={fetchEmails} />;
+  return <EmailList title="Scheduled" items={emails} isLoading={loading} onRefresh={() => fetchEmails(false)} />;
 }
