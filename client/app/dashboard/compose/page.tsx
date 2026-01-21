@@ -170,8 +170,11 @@ export default function ComposePage() {
     };
 
     // Fire and Forget - "Instant Switch"
+    // We yield to the main thread first to ensure the UI updates (button disabled/spinner)
+    await new Promise(resolve => setTimeout(resolve, 0));
+
     // We do NOT await this. We let it run in the background.
-    const sendPromise = Promise.all(targets.map(async (email) => {
+    Promise.all(targets.map(async (email) => {
          const controller = new AbortController();
          // Longer timeout for background process since we don't block UI
          const timeoutId = setTimeout(() => controller.abort(), 30000); 
@@ -251,8 +254,9 @@ export default function ComposePage() {
             <button 
                 onClick={() => handleSend('now')}
                 disabled={isSending}
-                className={`bg-green-600 text-white font-semibold py-2 px-6 rounded-md transition-colors ${isSending ? 'opacity-70 cursor-wait' : 'hover:bg-green-700'}`}
+                className={`bg-green-600 text-white font-semibold py-2 px-6 rounded-md transition-colors flex items-center gap-2 ${isSending ? 'opacity-70 cursor-wait' : 'hover:bg-green-700'}`}
             >
+                {isSending && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                 Send Now
             </button>
         </div>
@@ -378,9 +382,14 @@ export default function ComposePage() {
 
       </div>
 
-      {/* Modal */}
-      {showSchedule && (
-        <div className="absolute top-16 right-8 z-20 w-[400px] bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden">
+      {/* Modal - Overlay */}
+      <div 
+        className={`fixed inset-0 z-10 bg-black/20 backdrop-blur-sm transition-opacity duration-200 ${showSchedule ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}
+        onClick={() => setShowSchedule(false)} // Close on background click
+      ></div>
+
+      {/* Modal - Content */}
+      <div className={`absolute top-16 right-8 z-20 w-[400px] bg-white rounded-lg shadow-xl border border-gray-100 overflow-hidden transform transition-all duration-200 origin-top-right ${showSchedule ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}`}>
              {/* ... Modal Content matches design ... */}
              <div className="p-6">
                 <h3 className="font-semibold mb-4">Send Later</h3>
@@ -393,9 +402,10 @@ export default function ComposePage() {
                 <button 
                     onClick={() => handleSend('later')}
                     disabled={isSending}
-                    className={`w-full bg-green-600 text-white rounded py-2 ${isSending ? 'opacity-70 cursor-wait' : ''}`}
+                    className={`w-full bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 ${isSending ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                    {isSending ? 'Schedule Send' : 'Schedule Send'}
+                    {isSending && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
+                    {isSending ? 'Scheduling...' : 'Schedule Send'}
                 </button>
                  <button 
                     onClick={() => setShowSchedule(false)}
@@ -404,8 +414,7 @@ export default function ComposePage() {
                     Cancel
                 </button>
              </div>
-        </div>
-      )}
+      </div>
 
     </div>
   );
