@@ -23,6 +23,9 @@ export default function Home() {
     } else if (session) {
       router.push('/dashboard');
     }
+    
+    // Prefetch dashboard for faster transition
+    router.prefetch('/dashboard');
   }, [session, router]);
 
   const handleCredentialsLogin = async () => {
@@ -59,7 +62,7 @@ export default function Home() {
         <button
           onClick={handleGoogleLogin}
           disabled={isGoogleLoading || isCredentialsLoading}
-          className={`w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-md flex items-center justify-center gap-3 transition-colors mb-6 cursor-pointer ${isGoogleLoading ? 'opacity-70 cursor-wait' : ''}`}
+          className={`w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 px-4 rounded-md flex items-center justify-center gap-3 transition-colors mb-6 cursor-pointer ${isGoogleLoading ? 'opacity-70' : ''}`}
         >
           {isGoogleLoading ? (
              <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></div>
@@ -83,7 +86,7 @@ export default function Home() {
                 />
             </svg>
           )}
-          {isGoogleLoading ? 'Redirecting...' : 'Login with Google'}
+          Login with Google
         </button>
 
 
@@ -121,10 +124,10 @@ export default function Home() {
         <button 
             onClick={handleCredentialsLogin}
             disabled={isGoogleLoading || isCredentialsLoading}
-            className={`w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md transition-colors shadow-sm flex items-center justify-center gap-2 ${isCredentialsLoading ? 'opacity-70 cursor-wait' : ''}`}
+            className={`w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-md transition-colors shadow-sm flex items-center justify-center gap-2 ${isCredentialsLoading ? 'opacity-70' : ''}`}
         >
             {isCredentialsLoading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-            {isCredentialsLoading ? 'Logging In...' : 'Login'}
+            Login
         </button>
 
       </div>

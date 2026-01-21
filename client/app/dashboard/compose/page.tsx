@@ -254,7 +254,7 @@ export default function ComposePage() {
             <button 
                 onClick={() => handleSend('now')}
                 disabled={isSending}
-                className={`bg-green-600 text-white font-semibold py-2 px-6 rounded-md transition-colors flex items-center gap-2 ${isSending ? 'opacity-70 cursor-wait' : 'hover:bg-green-700'}`}
+                className={`bg-green-600 text-white font-semibold py-2 px-6 rounded-md transition-colors flex items-center gap-2 ${isSending ? 'opacity-70' : 'hover:bg-green-700'}`}
             >
                 {isSending && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                 Send Now
@@ -402,10 +402,10 @@ export default function ComposePage() {
                 <button 
                     onClick={() => handleSend('later')}
                     disabled={isSending}
-                    className={`w-full bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 ${isSending ? 'opacity-70 cursor-wait' : ''}`}
+                    className={`w-full bg-green-600 text-white rounded py-2 flex items-center justify-center gap-2 ${isSending ? 'opacity-70' : ''}`}
                 >
                     {isSending && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                    {isSending ? 'Scheduling...' : 'Schedule Send'}
+                    Schedule Send
                 </button>
                  <button 
                     onClick={() => setShowSchedule(false)}
