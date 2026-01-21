@@ -11,7 +11,7 @@ interface EmailItem {
     body: string;
     status: 'scheduled' | 'sent' | 'inbox'; // Added inbox status
     date: string;
-    previewUrl?: string | null; // Added preview URL
+    previewUrl?: string; // Ethereal Preview
 }
 
 interface EmailListProps {
@@ -103,24 +103,25 @@ const EmailListItem = ({ item }: { item: EmailItem }) => {
                     <span className="font-medium text-gray-900">{item.subject}</span>
                     <span className="text-gray-400">-</span>
                     <span className="truncate">{item.body}</span>
-                    
-                    {item.previewUrl && (
-                        <a 
-                            href={item.previewUrl} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()} // Prevent row click
-                            className="ml-2 text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded border border-blue-100"
-                        >
-                            View Preview ↗
-                        </a>
-                    )}
                 </div>
             </div>
             
-            <button className="text-gray-300 hover:text-yellow-400 transition-colors">
-                <Star size={18} />
-            </button>
+            <div className="flex flex-col items-end gap-2">
+                 {item.previewUrl && (
+                    <a 
+                        href={item.previewUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors whitespace-nowrap"
+                    >
+                        View Email ↗
+                    </a>
+                )}
+                <button className="text-gray-300 hover:text-yellow-400 transition-colors">
+                    <Star size={18} />
+                </button>
+            </div>
         </div>
     );
 };

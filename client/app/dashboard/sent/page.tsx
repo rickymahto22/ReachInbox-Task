@@ -36,7 +36,8 @@ export default function SentPage() {
                   status: job.status === 'COMPLETED' ? 'sent' : 'sent', // Show as sent/sending
                   date: job.status === 'COMPLETED' 
                         ? (job.sentAt ? new Date(job.sentAt).toLocaleString() : 'Sent')
-                        : 'Sending...'
+                        : 'Sending...',
+                  previewUrl: job.previewUrl
               }));
           setEmails(sent);
         }

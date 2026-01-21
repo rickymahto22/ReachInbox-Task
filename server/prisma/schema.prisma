@@ -36,7 +36,7 @@ model EmailJob {
   // For idempotency and tracking
   jobId           String? // BullMQ Job ID
   attachments     Json?   // Store attachment metadata: [{ filename, path, size }]
-  previewUrl      String? // Ethereal Email Preview URL
+  previewUrl      String? // Ethereal Preview URL
 }
 
 // Optional: for custom rate limiting tracking in DB if Redis persistence isn't enough

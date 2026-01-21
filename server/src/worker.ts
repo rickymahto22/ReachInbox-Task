@@ -4,7 +4,6 @@ import { redisConnection } from './config/redis';
 import { sendEmail } from './services/emailService';
 import { config } from './config/env';
 import { EmailJobData } from './types';
-import nodemailer from 'nodemailer';
 
 const EMAIL_QUEUE_NAME = 'email-queue';
 const MIN_DELAY_MS = 2000; // Default minimum delay
@@ -75,9 +74,11 @@ export const emailWorker = new Worker<EmailJobData>(EMAIL_QUEUE_NAME, async (job
         const shortJobId = job.id?.slice(-6).toUpperCase() || 'REF#000';
         personalizedSubject = `${personalizedSubject} | ${shortJobId}`;
 
-        const info = await sendEmail(recipient, personalizedSubject, personalizedBody, attachments, fromName, fromEmail);
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        console.log(`Job ${job.id} Ethereal Preview: ${previewUrl}`);
+        const { previewUrl } = await sendEmail(recipient, personalizedSubject, personalizedBody, attachments, fromName, fromEmail);
+
+        if (previewUrl) {
+            console.log(`[Worker] Saved Preview URL for job ${job.id}: ${previewUrl}`);
+        }
 
         // Update DB status
         await prisma.emailJob.update({
@@ -85,7 +86,7 @@ export const emailWorker = new Worker<EmailJobData>(EMAIL_QUEUE_NAME, async (job
             data: {
                 status: 'COMPLETED',
                 sentAt: new Date(),
-                previewUrl: previewUrl || null
+                previewUrl: typeof previewUrl === 'string' ? previewUrl : undefined
             }
         });
 
